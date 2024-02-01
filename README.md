@@ -1,0 +1,1 @@
+# cereinsight-local-setup
