@@ -145,7 +145,7 @@ services:
     restart: always
   
   cereinsight-fe:
-    image: cereinsight-fe:latest
+    image: cerebrumtech/cereinsight-fe:latest
     container_name: cereinsight-fe
     env_file:
       - /home/$USER/.env
