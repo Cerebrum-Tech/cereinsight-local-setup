@@ -124,10 +124,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /home/$USER/cereinsight/conf:/etc/nginx/conf.d
+      - /home/cerebrum/cereinsight/conf:/etc/nginx/conf.d
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
-      - /home/$USER/cereinsight/certs:/etc/nginx/certs:ro
+      - /home/cerebrum/cereinsight/certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
     restart: always
 
@@ -139,20 +139,21 @@ services:
     volumes_from:
       - nginx-proxy
     volumes:
-      - /home/$USER/cereinsight/certs:/etc/nginx/certs:rw
+      - /home/cerebrum/cereinsight/certs:/etc/nginx/certs:rw
       - acme:/etc/acme.sh
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
-  
+
   cereinsight-fe:
     image: cerebrumtech/cereinsight-fe:latest
     container_name: cereinsight-fe
+    restart: always
     env_file:
-      - /home/$USER/.env
+      - /home/cerebrum/.env
     ports:
       - 3000:3000
     volumes:
-      - /home/$USER/cereinsight/fe/log:/app/build/log
+      - /home/cerebrum/cereinsight/fe/log:/app/build/log
       - /var/run/docker.sock:/var/run/docker.sock
       - /blob/docbotVolumes:/blob/docbotVolumes
     logging:
@@ -160,12 +161,50 @@ services:
       options:
         max-size: "100m"
         max-file: "3"
+    links:
+      - apibackend
+    dns: 10.0.0.1
+
+  apibackend:
+    #   image: casusbelli555/apiback:latest
+    container_name: apibackend
+    image: cerebrumtech/ceremeetapi:latest
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ../ceremeetapi/.env
+    volumes:
+      - ./public:/app/public
+
+  postgres:
+    restart: always
+    image: postgres:14
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgresDB:/var/lib/postgresql/data
+    env_file:
+      - ../ceremeetapi/.env
+  redis:
+    container_name: redis
+    restart: always
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redisDB:/data
 volumes:
   conf:
   vhost:
   html:
   certs:
   acme:
+
 
 networks:
   default:
